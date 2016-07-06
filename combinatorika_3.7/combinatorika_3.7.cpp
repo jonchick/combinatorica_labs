@@ -13,7 +13,7 @@ const int MAX = 8;
 void getVars();
 void saveResult(int determinant);
 void fillKirchhoffMatrix();
-int determ(int a[MAX][MAX], int n);
+int determGauss(int a[MAX][MAX], int n);
 
 int v = 0;				// Количество вершин
 int g[MAX][MAX];		// Неориентированный граф
@@ -26,12 +26,12 @@ int main()
 
 	// Находим опеределитель матрицы для первого элемента
 	int dm[MAX][MAX];
-	for ( int i = 1; i<v; i++) {
-		for ( int j = 1; j<v; j++) {
-			dm[i - 1][j - 1] = martix[i][j];
+	for ( int row = 1; row<v; row++) {
+		for ( int col = 1; col<v; col++) {
+			dm[row - 1][col - 1] = martix[row][col];
 		}
 	}
-	int determinant = determ(dm, v - 1);
+	int determinant = determGauss(dm, v - 1);
 	
 	saveResult(determinant);
 	return 0;
@@ -82,35 +82,46 @@ void saveResult(int determinant) {
 	outputFile.close();
 }
 
-// Поиск определителя матрицы
-int determ(int a[MAX][MAX], int n) {
-	int det = 0, p, h, k, i, j, temp[MAX][MAX];
-	if (n == 1) {
-		return a[0][0];
-	}
-	else if (n == 2) {
-		det = (a[0][0] * a[1][1] - a[0][1] * a[1][0]);
-		return det;
-	}
-	else {
-		for (p = 0; p<n; p++) {
-			h = 0;
-			k = 0;
-			for (i = 1; i<n; i++) {
-				for (j = 0; j<n; j++) {
-					if (j == p) {
-						continue;
-					}
-					temp[h][k] = a[i][j];
-					k++;
-					if (k == n - 1) {
-						h++;
-						k = 0;
-					}
+// Поиск определителя матрицы методом Гауса
+int determGauss(int a[MAX][MAX], int n) {
+
+	for (int col = 0; col < n; ++col) {
+		bool found = false;
+		for (int row = col; row < n; ++row) {
+			if (a[row][col]) {
+				if (row != col)
+				{
+					swap(a[row], a[col]);
+				}
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
+			return 0;
+		}
+
+		for (int row = col + 1; row < n; ++row) {
+			while (true) {
+				int del = a[row][col] / a[col][col];
+				for (int j = col; j < n; ++j) {
+					a[row][j] -= del * a[col][j];
+				}
+				if (a[row][col] == 0)
+				{
+					break;
+				}
+				else
+				{
+					swap(a[row], a[col]);
 				}
 			}
-			det = det + a[0][p] * pow(-1, p) * determ(temp, n - 1);
 		}
-		return det;
 	}
+	long res = 1;
+	for (int i = 0; i < n; ++i) {
+		res *= a[i][i];
+	}
+	return abs(res);
 }
